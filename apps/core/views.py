@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from apps.core.models import Workstation, Client, PaymentConfig, TaxBand, JobRole
-from apps.users.models import User
+from apps.employees.models import Employee, DeploymentAssignment
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
@@ -18,12 +18,54 @@ SP_GROUP_CHOICES = [
 
 @login_required(login_url="/users/login")
 def home(request):
-    employees_count = User.objects.filter(role="Employee").count()
-    clients_count = Client.objects.all().count()
+    active_statuses = ["Available", "Approved"]
+    active_guards = Employee.objects.filter(status__in=active_statuses)
+    workstations = Workstation.objects.select_related("client").all().order_by("client__name", "name")
+    posted_counts = dict(
+        active_guards.filter(workstation__isnull=False)
+        .values_list("workstation_id")
+        .annotate(total=Count("id"))
+    )
 
-    context = {"employees_count": employees_count, "clients_count": clients_count}
+    coverage_rows = []
+    total_required = 0
+    total_posted = 0
+    for workstation in workstations:
+        required = workstation.guards_needed or 0
+        posted = posted_counts.get(workstation.id, 0)
+        shortage = max(required - posted, 0)
+        total_required += required
+        total_posted += posted
+        if shortage:
+            coverage_rows.append(
+                {
+                    "workstation": workstation,
+                    "client": workstation.client,
+                    "required": required,
+                    "posted": posted,
+                    "shortage": shortage,
+                }
+            )
+
+    recent_deployments = DeploymentAssignment.objects.select_related(
+        "employee", "client", "workstation", "assigned_by"
+    ).order_by("-assigned_at", "-created")[:6]
+
+    context = {
+        "employees_count": Employee.objects.count(),
+        "active_guards_count": active_guards.count(),
+        "available_count": Employee.objects.filter(status="Available").count(),
+        "on_leave_count": Employee.objects.filter(status="On Leave").count(),
+        "pending_count": Employee.objects.filter(status="Pending Approval").count(),
+        "clients_count": Client.objects.count(),
+        "workstations_count": workstations.count(),
+        "total_required": total_required,
+        "total_posted": total_posted,
+        "open_posts": max(total_required - total_posted, 0),
+        "coverage_rows": coverage_rows[:8],
+        "recent_deployments": recent_deployments,
+    }
     return render(request, "home.html", context)
-
 
 @login_required(login_url="/users/login")
 def clients(request):
@@ -130,13 +172,33 @@ def delete_client(request):
 def client_detail(request, client_id):
     client = Client.objects.get(id=client_id)
 
-    guards = client.clientsguards.all()
+    guards = client.clientsguards.select_related("position", "workstation").order_by(
+        "first_name", "last_name", "id"
+    )
     workstations = client.workstations.all()
+    workstation_count = workstations.count()
+    total_required = sum(workstation.guards_needed or 0 for workstation in workstations)
+    total_posted = guards.count()
+    open_posts = max(total_required - total_posted, 0)
+    over_posted = max(total_posted - total_required, 0)
+    coverage_percent = int((total_posted / total_required) * 100) if total_required else 0
+    coverage_bar_percent = min(coverage_percent, 100)
     paginator = Paginator(guards, 6)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    context = {"client": client, "page_obj": page_obj, "workstations": workstations}
+    context = {
+        "client": client,
+        "page_obj": page_obj,
+        "workstations": workstations,
+        "workstation_count": workstation_count,
+        "total_required": total_required,
+        "total_posted": total_posted,
+        "open_posts": open_posts,
+        "over_posted": over_posted,
+        "coverage_percent": coverage_percent,
+        "coverage_bar_percent": coverage_bar_percent,
+    }
     return render(request, "clients/client_detail.html", context)
 
 

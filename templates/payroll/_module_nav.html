@@ -1,0 +1,19 @@
+<div class="ops-page-header payroll-module-header">
+  <div>
+    <div class="ops-page-kicker">Payroll module</div>
+    <h3 class="mb-1">{{ payroll_title|default:"Payroll Management" }}</h3>
+    <p class="text-muted mb-0">{{ payroll_subtitle|default:"Contracts, deductions, payroll runs, and payslips." }}</p>
+  </div>
+  <form action="{% url 'generate-payroll' %}" method="POST" class="ops-search-form payroll-run-form">
+    {% csrf_token %}
+    <div class="input-group">
+      <select class="form-select" name="month" required>
+        {% for value,label in months %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      <input class="form-control" type="number" name="year" value="{{ current_year|default:'2026' }}" min="2020" required>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-play-fill"></i> Run</button>
+    </div>
+  </form>
+</div>

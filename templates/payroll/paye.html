@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title="PAYE Bands" payroll_subtitle="Configure salary bands, rates, reliefs, and active PAYE rules." %}
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">PAYE Register</h5>
+      <small class="text-muted">{{ paye_bands|length }} configured salary bands</small>
+    </div>
+    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newPayeBandModal">
+      <i class="bi bi-plus-lg"></i> New PAYE Band
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Band</th>
+          <th class="text-end">Lower</th>
+          <th class="text-end">Upper</th>
+          <th class="text-end">Rate</th>
+          <th class="text-end">Relief</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for band in paye_bands %}
+          <tr>
+            <td><strong>{{ band.name }}</strong></td>
+            <td class="text-end">{{ band.lower_limit }}</td>
+            <td class="text-end">{{ band.upper_limit|default:"No cap" }}</td>
+            <td class="text-end">{{ band.rate }}%</td>
+            <td class="text-end">{{ band.relief_amount }}</td>
+            <td>
+              {% if band.is_active %}
+                <span class="badge text-bg-success">Active</span>
+              {% else %}
+                <span class="badge text-bg-light">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editPayeBandModal{{ band.id }}" title="Edit PAYE band">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No PAYE bands configured.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for band in paye_bands %}
+  <div class="modal fade" id="editPayeBandModal{{ band.id }}" tabindex="-1" aria-labelledby="editPayeBandModalLabel{{ band.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h1 class="modal-title fs-5" id="editPayeBandModalLabel{{ band.id }}">Edit PAYE Band</h1>
+            <small class="text-muted">{{ band.name }}</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{% url 'edit-paye-band' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="paye_band_id" value="{{ band.id }}">
+          <div class="modal-body">
+            <div class="payroll-form-stack">
+              <div>
+                <label class="form-label">Band Name</label>
+                <input class="form-control" name="name" value="{{ band.name }}" required>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Lower Limit</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="lower_limit" value="{{ band.lower_limit }}" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Upper Limit</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="upper_limit" value="{{ band.upper_limit|default_if_none:'' }}">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Rate %</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="rate" value="{{ band.rate }}" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Relief</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="relief_amount" value="{{ band.relief_amount }}">
+                </div>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="is_active" id="payeActive{{ band.id }}" {% if band.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="payeActive{{ band.id }}">Active band</label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<div class="modal fade" id="newPayeBandModal" tabindex="-1" aria-labelledby="newPayeBandModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h1 class="modal-title fs-5" id="newPayeBandModalLabel">New PAYE Band</h1>
+          <small class="text-muted">Progressive salary-band tax rule</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'create-paye-band' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="payroll-form-stack">
+            <div>
+              <label class="form-label">Band Name</label>
+              <input class="form-control" name="name" placeholder="Band 1" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Lower Limit</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="lower_limit" required>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Upper Limit</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="upper_limit">
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Rate %</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="rate" required>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Relief</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="relief_amount" value="0">
+              </div>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="payeActive" checked>
+              <label class="form-check-label" for="payeActive">Active band</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save PAYE Band</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

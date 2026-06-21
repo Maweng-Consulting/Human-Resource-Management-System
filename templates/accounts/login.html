@@ -1,77 +1,62 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="M-6 Security workforce operations login">
+    <title>Login | M-6 Security Operations</title>
+    <link href="{% static 'assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'assets/dist/css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'dashboard.css' %}?v=20260620-ui-shell-2" rel="stylesheet">
+  </head>
+  <body class="ops-auth-body">
+    <main class="ops-auth-page">
+      <section class="ops-auth-panel" aria-label="M-6 Security sign in">
+        <div class="ops-auth-info">
+          <a class="ops-brand ops-auth-brand" href="{% url 'login' %}">
+            <span class="ops-brand-mark">M6</span>
+            <span class="ops-brand-text">M-6 Security<small>Workforce command</small></span>
+          </a>
+          <div class="ops-auth-copy">
+            <div class="ops-page-kicker">Secure operations</div>
+            <h1>Sign in to manage guard deployments, attendance, payroll, and field assets.</h1>
+            <p>Keep roster movement, client coverage, and daily command decisions in one controlled workspace.</p>
+          </div>
+          <div class="ops-auth-highlights">
+            <span><i class="bi bi-shield-check"></i> Deployment control</span>
+            <span><i class="bi bi-calendar-check"></i> Attendance tracking</span>
+            <span><i class="bi bi-cash-coin"></i> Payroll readiness</span>
+          </div>
+        </div>
 
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="description" content="Responsive Admin &amp; Dashboard Template based on Bootstrap 5">
-        <meta name="author" content="AdminKit">
-        <meta name="keywords"
-            content="adminkit, bootstrap, bootstrap 5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
+        <div class="ops-auth-card">
+          <div class="mb-4">
+            <div class="ops-page-kicker">Account access</div>
+            <h2 class="mb-1">Welcome Back</h2>
+            <p class="text-muted mb-0">Use your assigned M-6 credentials to continue.</p>
+          </div>
 
-        <link rel="preconnect" href="https://fonts.gstatic.com">
-        <link rel="shortcut icon" href="img/icons/icon-48x48.png" />
-
-        <link rel="canonical" href="https://demo-basic.adminkit.io/pages-sign-in.html" />
-        <!--<link rel="icon" href="{% static 'images/mmust_logo.png' %}" type="image/x-icon"> -->
-        <title>LOGIN | M-6</title>
-
-        <link href="{% static 'forms/css/app.css' %}" rel="stylesheet">
-
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    </head>
-
-    <body>
-        <main class="d-flex w-100">
-            <div class="container d-flex flex-column">
-                <div class="row vh-100">
-                    <div class="col-sm-10 col-md-8 col-lg-6 mx-auto d-table h-100">
-                        <div class="d-table-cell align-middle">
-
-                            <div class="card">
-                                <div class="text-center">
-                                   <!-- <img src="..." class="rounded" alt="...">-->
-                                </div>
-                                <div class="card-body">
-                                    <h3 class="h3 text-center">M-6 WM | LOGIN</h3>
-                                    <hr />
-                                    <div class="m-sm-4">
-                                        <form action="" method="POST">
-                                            {% csrf_token %}
-                                            <div class="mb-3">
-                                                <label class="form-label">Username</label>
-                                                <input class="form-control form-control-lg" type="text" name="username"
-                                                    placeholder="Enter Username" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Password</label>
-                                                <input class="form-control form-control-lg" type="password"
-                                                    name="password" placeholder="Enter your password" />
-                                                <small>
-                                                    <a href="#">Forgot password?</a>
-                                                </small>
-                                            </div>
-                                           
-                                            <div class="text-center mt-3">
-                                                <button type="submit" class="btn btn-lg btn-secondary">LOGIN</button>
-                                            </div>
-
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
+          <form action="" method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-bold" for="username">Username</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input class="form-control" type="text" name="username" id="username" placeholder="Enter username" autocomplete="username" required>
+              </div>
             </div>
-        </main>
-        <!-- CSS only -->
-        <script src="{% static 'forms/js/app.js' %}"></script>
-        <!-- JavaScript Bundle with Popper -->
-
-    </body>
-
+            <div class="mb-3">
+              <label class="form-label fw-bold" for="password">Password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input class="form-control" type="password" name="password" id="password" placeholder="Enter password" autocomplete="current-password" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mt-2">Sign In</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>

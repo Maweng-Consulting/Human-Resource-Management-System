@@ -7,7 +7,6 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from apps.attendance.models import Attendance
 from apps.payments.models import EmployeeSalary, EmployeeOvertime
-from apps.users.models import User
 from apps.employees.models import Employee
 
 

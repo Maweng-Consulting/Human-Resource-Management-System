@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title="Payroll Overview" payroll_subtitle="A dedicated payroll workspace for contracts, deductions, runs, and payslips." %}
+
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card h-100">
+      <div class="card-body d-flex justify-content-between align-items-start">
+        <div>
+          <p class="text-muted mb-1">Active Contracts</p>
+          <h3 class="mb-0">{{ active_contracts_count }}</h3>
+        </div>
+        <span class="ops-stat-icon"><i class="bi bi-file-earmark-text"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card h-100">
+      <div class="card-body d-flex justify-content-between align-items-start">
+        <div>
+          <p class="text-muted mb-1">Missing Contracts</p>
+          <h3 class="mb-0">{{ employees_without_contract }}</h3>
+        </div>
+        <span class="ops-stat-icon ops-stat-icon-warning"><i class="bi bi-exclamation-triangle"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card h-100">
+      <div class="card-body d-flex justify-content-between align-items-start">
+        <div>
+          <p class="text-muted mb-1">Active Deductions</p>
+          <h3 class="mb-0">{{ common_deductions_count }}</h3>
+        </div>
+        <span class="ops-stat-icon"><i class="bi bi-sliders"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card h-100">
+      <div class="card-body d-flex justify-content-between align-items-start">
+        <div>
+          <p class="text-muted mb-1">Latest Run</p>
+          <h3 class="mb-0">{% if latest_run %}{{ latest_run.month|slice:":3" }}{% else %}-{% endif %}</h3>
+        </div>
+        <span class="ops-stat-icon"><i class="bi bi-receipt"></i></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="payroll-module-grid">
+  <a class="card payroll-module-card" href="{% url 'payroll-contracts' %}">
+    <div class="card-body">
+      <span class="ops-stat-icon"><i class="bi bi-file-earmark-text"></i></span>
+      <h5>Contracts</h5>
+      <p>Set each employee as daily-paid or monthly-salaried, with overtime rates and active dates.</p>
+    </div>
+  </a>
+  <a class="card payroll-module-card" href="{% url 'payroll-paye' %}">
+    <div class="card-body">
+      <span class="ops-stat-icon"><i class="bi bi-percent"></i></span>
+      <h5>PAYE</h5>
+      <p>Maintain salary bands, rates, reliefs, and active tax rules for payroll runs.</p>
+    </div>
+  </a>
+  <a class="card payroll-module-card" href="{% url 'payroll-deductions' %}">
+    <div class="card-body">
+      <span class="ops-stat-icon"><i class="bi bi-sliders2"></i></span>
+      <h5>Deductions</h5>
+      <p>Manage global deductions like SHIF, Housing Levy, and NSSF tiers.</p>
+    </div>
+  </a>
+  <a class="card payroll-module-card" href="{% url 'payroll-runs' %}">
+    <div class="card-body">
+      <span class="ops-stat-icon"><i class="bi bi-receipt"></i></span>
+      <h5>Payroll Runs</h5>
+      <p>Generate payroll by period, review itemized lines, and print individual payslips.</p>
+    </div>
+  </a>
+</div>
+{% endblock content %}

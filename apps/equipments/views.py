@@ -8,7 +8,7 @@ from apps.equipments.models import (
 )
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from apps.users.models import User
+from apps.employees.models import Employee
 from django.db.models import Q
 
 
@@ -88,7 +88,7 @@ def delete_equipment(request):
 def issued_equipment(request):
     issued_equipment = EquipmentIssue.objects.all().order_by("-created")
 
-    employees = User.objects.filter(role="Employee")
+    employees = Employee.objects.exclude(status__in=["Pending Approval", "Declined"])
     equipments = Equipment.objects.all()
 
     if request.method == "POST":

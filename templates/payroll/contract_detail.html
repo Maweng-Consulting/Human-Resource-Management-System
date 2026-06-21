@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title=contract.employee payroll_subtitle="Manage this employee contract, personal deductions, and allowances." %}
+
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card">
+      <div class="card-body">
+        <p class="text-muted mb-1">Pay Basis</p>
+        <h3>{{ contract.pay_basis }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card">
+      <div class="card-body">
+        <p class="text-muted mb-1">Monthly Salary</p>
+        <h3>{{ contract.monthly_salary }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card">
+      <div class="card-body">
+        <p class="text-muted mb-1">Daily Rate</p>
+        <h3>{{ contract.daily_rate }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card ops-stat-card">
+      <div class="card-body">
+        <p class="text-muted mb-1">Overtime Rate</p>
+        <h3>{{ contract.overtime_rate }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card ops-table-card mb-3">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">Allowances</h5>
+      <small class="text-muted">Contract-specific earnings included in gross pay</small>
+    </div>
+    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newAllowanceModal">
+      <i class="bi bi-plus-lg"></i> Add Allowance
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th class="text-end">Value</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for allowance in allowances %}
+          <tr>
+            <td><strong>{{ allowance.name }}</strong></td>
+            <td>{{ allowance.value_type }}</td>
+            <td class="text-end">{{ allowance.value }}</td>
+            <td>
+              {% if allowance.is_active %}
+                <span class="badge text-bg-success">Active</span>
+              {% else %}
+                <span class="badge text-bg-light">Inactive</span>
+              {% endif %}
+            </td>
+            <td>{{ allowance.notes|default:"-" }}</td>
+            <td class="text-end">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editAllowanceModal{{ allowance.id }}" title="Edit allowance">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No allowances configured for this contract.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">Personal Deductions</h5>
+      <small class="text-muted">Employee-specific deductions linked through this contract</small>
+    </div>
+    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newContractDeductionModal">
+      <i class="bi bi-plus-lg"></i> Add Deduction
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th class="text-end">Value</th>
+          <th class="text-end">Balance</th>
+          <th>Period</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for deduction in employee_deductions %}
+          <tr>
+            <td><strong>{{ deduction.name }}</strong></td>
+            <td>{{ deduction.value_type }}</td>
+            <td class="text-end">{{ deduction.value }}</td>
+            <td class="text-end">{{ deduction.balance|default:"-" }}</td>
+            <td>{{ deduction.start_date }}{% if deduction.end_date %} - {{ deduction.end_date }}{% endif %}</td>
+            <td>{{ deduction.status }}</td>
+            <td class="text-end">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editContractDeductionModal{{ deduction.id }}" title="Edit deduction">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No personal deductions configured for this employee.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for allowance in allowances %}
+  <div class="modal fade" id="editAllowanceModal{{ allowance.id }}" tabindex="-1" aria-labelledby="editAllowanceModalLabel{{ allowance.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h1 class="modal-title fs-5" id="editAllowanceModalLabel{{ allowance.id }}">Edit Allowance</h1>
+            <small class="text-muted">{{ allowance.name }}</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{% url 'edit-contract-allowance' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="contract_allowance_id" value="{{ allowance.id }}">
+          <div class="modal-body">
+            <div class="payroll-form-stack">
+              <div>
+                <label class="form-label">Name</label>
+                <input class="form-control" name="name" value="{{ allowance.name }}" required>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Type</label>
+                  <select class="form-select" name="value_type" required>
+                    <option value="Amount" {% if allowance.value_type == "Amount" %}selected{% endif %}>Fixed amount</option>
+                    <option value="Percentage" {% if allowance.value_type == "Percentage" %}selected{% endif %}>Percentage</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Value</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="value" value="{{ allowance.value }}" required>
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" name="notes" rows="2">{{ allowance.notes|default:'' }}</textarea>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="is_active" id="allowanceActive{{ allowance.id }}" {% if allowance.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="allowanceActive{{ allowance.id }}">Active allowance</label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+{% for deduction in employee_deductions %}
+  <div class="modal fade" id="editContractDeductionModal{{ deduction.id }}" tabindex="-1" aria-labelledby="editContractDeductionModalLabel{{ deduction.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h1 class="modal-title fs-5" id="editContractDeductionModalLabel{{ deduction.id }}">Edit Personal Deduction</h1>
+            <small class="text-muted">{{ deduction.name }}</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{% url 'edit-personal-deduction' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="contract_id" value="{{ contract.id }}">
+          <input type="hidden" name="personal_deduction_id" value="{{ deduction.id }}">
+          <input type="hidden" name="employee_id" value="{{ contract.employee.id }}">
+          <div class="modal-body">
+            <div class="payroll-form-stack">
+              <div>
+                <label class="form-label">Deduction Name</label>
+                <input class="form-control" name="name" value="{{ deduction.name }}" required>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Type</label>
+                  <select class="form-select" name="value_type" required>
+                    <option value="Amount" {% if deduction.value_type == "Amount" %}selected{% endif %}>Fixed amount</option>
+                    <option value="Percentage" {% if deduction.value_type == "Percentage" %}selected{% endif %}>Percentage</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Value</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="value" value="{{ deduction.value }}" required>
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Balance</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="balance" value="{{ deduction.balance|default_if_none:'' }}">
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Start Date</label>
+                  <input class="form-control" type="date" name="start_date" value="{{ deduction.start_date|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">End Date</label>
+                  <input class="form-control" type="date" name="end_date" value="{{ deduction.end_date|date:'Y-m-d' }}">
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                  <option value="Active" {% if deduction.status == "Active" %}selected{% endif %}>Active</option>
+                  <option value="Paused" {% if deduction.status == "Paused" %}selected{% endif %}>Paused</option>
+                  <option value="Completed" {% if deduction.status == "Completed" %}selected{% endif %}>Completed</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" name="notes" rows="2">{{ deduction.notes|default:'' }}</textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<div class="modal fade" id="newAllowanceModal" tabindex="-1" aria-labelledby="newAllowanceModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h1 class="modal-title fs-5" id="newAllowanceModalLabel">Add Allowance</h1>
+          <small class="text-muted">Allowances increase this contract's gross pay</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'create-contract-allowance' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="contract_id" value="{{ contract.id }}">
+        <div class="modal-body">
+          <div class="payroll-form-stack">
+            <div>
+              <label class="form-label">Name</label>
+              <input class="form-control" name="name" placeholder="Transport allowance" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="value_type" required>
+                  <option value="Amount">Fixed amount</option>
+                  <option value="Percentage">Percentage</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Value</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="value" required>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" name="notes" rows="2"></textarea>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="allowanceActive" checked>
+              <label class="form-check-label" for="allowanceActive">Active allowance</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Allowance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newContractDeductionModal" tabindex="-1" aria-labelledby="newContractDeductionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h1 class="modal-title fs-5" id="newContractDeductionModalLabel">Add Personal Deduction</h1>
+          <small class="text-muted">Loans, pension, or employee-specific deductions</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'create-personal-deduction' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="contract_id" value="{{ contract.id }}">
+        <input type="hidden" name="employee_id" value="{{ contract.employee.id }}">
+        <div class="modal-body">
+          <div class="payroll-form-stack">
+            <div>
+              <label class="form-label">Deduction Name</label>
+              <input class="form-control" name="name" placeholder="Staff loan" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="value_type" required>
+                  <option value="Amount">Fixed amount</option>
+                  <option value="Percentage">Percentage</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Value</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="value" required>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Balance</label>
+              <input class="form-control" type="number" step="0.01" min="0" name="balance">
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Start Date</label>
+                <input class="form-control" type="date" name="start_date" required>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">End Date</label>
+                <input class="form-control" type="date" name="end_date">
+              </div>
+            </div>
+            <input type="hidden" name="status" value="Active">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Deduction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payslip | {{ line.employee }}</title>
+    <style>
+      body { color: #17201b; font-family: Arial, sans-serif; margin: 0; padding: 24px; }
+      .receipt { border: 1px solid #dce5e1; margin: 0 auto; max-width: 840px; padding: 28px; }
+      .header { border-bottom: 2px solid #17201b; display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 12px; }
+      h1, h2, h3 { margin: 0; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 16px; margin-bottom: 10px; }
+      .muted { color: #66736d; }
+      .grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); margin-bottom: 18px; }
+      table { border-collapse: collapse; margin-top: 10px; width: 100%; }
+      th, td { border-bottom: 1px solid #dce5e1; padding: 9px; text-align: left; }
+      th { background: #eef4f1; font-size: 12px; text-transform: uppercase; }
+      .text-end { text-align: right; }
+      .total-row td { font-weight: 700; }
+      .net { background: #eef4f1; font-size: 18px; font-weight: 800; padding: 14px; text-align: right; }
+      @media print { body { padding: 0; } .receipt { border: 0; } }
+    </style>
+  </head>
+  <body>
+    <main class="receipt">
+      <div class="header">
+        <div>
+          <h1>M-6 Security Payroll</h1>
+          <div class="muted">Payslip for {{ line.payroll_run.month }} {{ line.payroll_run.year }}</div>
+        </div>
+        <div class="text-end">
+          <strong>{{ line.employee }}</strong>
+          <div class="muted">{{ line.employee.id_number|default:"No ID number" }}</div>
+        </div>
+      </div>
+
+      <section class="grid">
+        <div>
+          <h2>Employee</h2>
+          <div>KRA PIN: {{ line.employee.kra_pin|default:"-" }}</div>
+          <div>NSSF: {{ line.employee.nssf_number|default:"-" }}</div>
+          <div>SHIF/NHIF: {{ line.employee.nhif_number|default:"-" }}</div>
+        </div>
+        <div>
+          <h2>Contract</h2>
+          <div>Pay basis: {{ line.pay_basis }}</div>
+          <div>Days worked: {{ line.days_worked }}</div>
+          <div>Overtime hours: {{ line.overtime_hours }}</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Pay Breakdown</h2>
+        <table>
+          <thead><tr><th>Description</th><th>Type</th><th class="text-end">Amount</th></tr></thead>
+          <tbody>
+            {% for item in line.items.all %}
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.item_type }}</td>
+                <td class="text-end">{{ item.amount }}</td>
+              </tr>
+            {% endfor %}
+            <tr class="total-row"><td colspan="2">Gross Pay</td><td class="text-end">{{ line.gross_pay }}</td></tr>
+            <tr class="total-row"><td colspan="2">Total Deductions</td><td class="text-end">{{ line.total_deductions }}</td></tr>
+          </tbody>
+        </table>
+        <div class="net">Net Pay: {{ line.net_pay }}</div>
+      </section>
+    </main>
+    <script>window.print();</script>
+  </body>
+</html>

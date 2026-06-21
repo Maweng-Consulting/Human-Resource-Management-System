@@ -74,6 +74,42 @@ class Employee(AbstractBaseModel):
         return f"{self.first_name} {self.last_name}"
 
 
+
+DEPLOYMENT_STATUS_CHOICES = (
+    ("Active", "Active"),
+    ("Reassigned", "Reassigned"),
+    ("Ended", "Ended"),
+)
+
+
+class DeploymentAssignment(AbstractBaseModel):
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name="deployment_history"
+    )
+    client = models.ForeignKey(
+        "core.Client", on_delete=models.SET_NULL, null=True, related_name="deployments"
+    )
+    workstation = models.ForeignKey(
+        "core.Workstation",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="deployments",
+    )
+    work_shift = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(
+        max_length=255, choices=DEPLOYMENT_STATUS_CHOICES, default="Active"
+    )
+    assigned_by = models.ForeignKey(
+        "users.User", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    assigned_at = models.DateTimeField(null=True, blank=True)
+    released_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        workstation = self.workstation.name if self.workstation else "Unassigned"
+        return f"{self.employee} - {workstation}"
+
 class EmployeeDocument(AbstractBaseModel):
     employee = models.OneToOneField(
         Employee, on_delete=models.CASCADE, related_name="employeedocuments"

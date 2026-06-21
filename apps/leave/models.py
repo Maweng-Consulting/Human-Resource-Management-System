@@ -22,7 +22,7 @@ LEAVE_STATUS_CHOICES = (
 
 
 class EmployeeLeave(AbstractBaseModel):
-    employee = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    employee = models.ForeignKey("employees.Employee", on_delete=models.CASCADE)
     days_applied = models.IntegerField(default=1)
     leave_type = models.CharField(max_length=255, choices=LEAVE_TYPES)
     status = models.CharField(

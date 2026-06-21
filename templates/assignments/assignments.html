@@ -1,73 +1,136 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col">
-        <h3>Employees Assigments</h3>
+<div class="ops-page-header">
+  <div>
+    <div class="ops-page-kicker">Deployment desk</div>
+    <h3 class="mb-1">Employee Assignments</h3>
+    <p class="text-muted mb-0">Review current guard posts and move staff between client workstations.</p>
+  </div>
+  <form method="POST" class="ops-search-form">
+    {% csrf_token %}
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" class="form-control" name="search_text" id="search_text" placeholder="Search name, phone, or ID number">
+      <button class="btn btn-primary" type="submit">Search</button>
     </div>
-    <div class="col">
-      <form method="POST">
-        {% csrf_token %}
-        
-          <div class="row">
-            <div class="col-8">
-              <input type="text" class="form-control" name="search_text" id="search_text" placeholder="Name/ID No. ...">
-            </div>
-            <div class="col-4">
-              <button class="btn btn-info">Search</button>
-            </div>
-          </div>
-      </form>
-    </div>
+  </form>
 </div>
-<hr/>
-      <div class="table-responsive small">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Name</th>
-              <th scope="col">Position</th>
-              <th scope="col">Client</th>
-              <th scope="col">Workstation</th>
-              <th scope="col">Status</th>
-              <th scope="col" colspan="3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for employee in page_obj %}
-            <tr>
-              <td>{{employee.id}}</td>
-              <td>{{employee.first_name}} {{employee.last_name}}</td>
-              <td>{{employee.position}}</td>
-              <td>{{employee.client}}</td>
-              <td>{{employee.workstation}}</td>
-              <td>{{employee.status}}</td>
-              <td>
-                <a href="{% url 'employee-details' employee.id %}" class="btn btn-info btn-sm"><i class="bi bi-eye-fill"></i></a>
-              </td>
-              
-              <td><a class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#reassignModal{{ employee.id }}">
-                <i class="bi bi-pencil-square"></i>
-              </a></td>
-            {% include "assignments/reassign.html" %}
-            </tr>
-            {% endfor %}
 
-          </tbody>
-        </table>
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-xl-4">
+    <div class="card ops-stat-card h-100">
+      <div class="card-body d-flex justify-content-between align-items-start gap-3">
         <div>
-          <nav aria-label="Page navigation example">
-            <ul class="pagination justify-content-end">
-              {% if page_obj.has_previous %}   
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
-              {% endif %}
-              <a class="page-link" href="#">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
-              {% if page_obj.has_next %}    
-              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-              {% endif %}   
-            </ul>
-          </nav>
+          <p class="text-muted mb-1">Assigned Guards</p>
+          <h3 class="mb-0">{{ assigned_count }}</h3>
         </div>
+        <span class="ops-stat-icon"><i class="bi bi-person-check"></i></span>
       </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="card ops-stat-card h-100">
+      <div class="card-body d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <p class="text-muted mb-1">Unassigned Guards</p>
+          <h3 class="mb-0">{{ unassigned_count }}</h3>
+        </div>
+        <span class="ops-stat-icon ops-stat-icon-warning"><i class="bi bi-person-dash"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="card ops-stat-card h-100">
+      <div class="card-body d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <p class="text-muted mb-1">Active Workstations</p>
+          <h3 class="mb-0">{{ workstation_count }}</h3>
+        </div>
+        <span class="ops-stat-icon"><i class="bi bi-building-check"></i></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h5 class="mb-0">Current Roster</h5>
+      <small class="text-muted">{{ page_obj.paginator.count }} guards match this view</small>
+    </div>
+    <a href="{% url 'employees' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-people"></i> Employee records</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Guard</th>
+          <th scope="col">Role</th>
+          <th scope="col">Client</th>
+          <th scope="col">Workstation</th>
+          <th scope="col">Shift</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for employee in page_obj %}
+        <tr>
+          <td>
+            <div class="ops-person-cell">
+              <span class="ops-avatar">{{ employee.first_name|first }}{{ employee.last_name|first }}</span>
+              <div>
+                <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+                <div class="small text-muted">ID {{ employee.id_number|default:employee.id }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ employee.position|default:"Not set" }}</td>
+          <td>{{ employee.client|default:"Unassigned" }}</td>
+          <td>{{ employee.workstation|default:"No workstation" }}</td>
+          <td><span class="badge text-bg-light">{{ employee.workshift|default:"No shift" }}</span></td>
+          <td>
+            {% if employee.status == "Available" or employee.status == "Approved" %}
+              <span class="badge text-bg-success">{{ employee.status }}</span>
+            {% elif employee.status == "On Leave" %}
+              <span class="badge text-bg-warning">{{ employee.status }}</span>
+            {% elif employee.status == "Suspended" %}
+              <span class="badge text-bg-danger">{{ employee.status }}</span>
+            {% else %}
+              <span class="badge text-bg-light">{{ employee.status }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Assignment actions for {{ employee.first_name }} {{ employee.last_name }}">
+              <a href="{% url 'employee-details' employee.id %}" class="btn btn-outline-secondary" title="View employee"><i class="bi bi-eye"></i></a>
+              <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#reassignModal{{ employee.id }}" title="Reassign guard">
+                <i class="bi bi-arrow-left-right"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% include "assignments/reassign.html" %}
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">No assignable employees found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-white">
+    <nav aria-label="Assignment pages">
+      <ul class="pagination justify-content-end mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</div>
 {% endblock content %}

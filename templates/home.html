@@ -1,24 +1,139 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-
-    <div class="card m-2" style="width: 16rem;">
-        <div class="card-body">
-          <h5 class="card-title">Employees</h5>
-          <hr/>
-          <p class="card-text">Count: {{employees_count}}</p>
-          <a href="{% url 'employees' %}" class="btn btn-info btn-sm">See List</a>
-        </div>
-      </div>
-      <div class="card m-2" style="width: 16rem;">
-        <div class="card-body">
-          <h5 class="card-title">Clients</h5>
-          <hr/>
-          <p class="card-text">Count: {{clients_count}}</p>
-          <a href="{% url 'clients' %}" class="btn btn-info btn-sm">See List</a>
-        </div>
-      </div>
-      
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h3 class="mb-1">Operations Dashboard</h3>
+    <p class="text-muted mb-0">Guard coverage, assignments, and staffing gaps</p>
   </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'assignments' %}" class="btn btn-primary btn-sm"><i class="bi bi-arrow-left-right"></i> Assignments</a>
+    <a href="{% url 'attendances' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-calendar-check"></i> Attendance</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <p class="text-muted mb-1">Active Guards</p>
+            <h3 class="mb-0">{{ active_guards_count }}</h3>
+          </div>
+          <i class="bi bi-shield-check fs-3 text-primary"></i>
+        </div>
+        <small class="text-muted">{{ employees_count }} total roster records</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <p class="text-muted mb-1">Open Posts</p>
+            <h3 class="mb-0">{{ open_posts }}</h3>
+          </div>
+          <i class="bi bi-exclamation-triangle fs-3 text-warning"></i>
+        </div>
+        <small class="text-muted">{{ total_posted }} posted of {{ total_required }} required</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <p class="text-muted mb-1">Clients</p>
+            <h3 class="mb-0">{{ clients_count }}</h3>
+          </div>
+          <i class="bi bi-buildings fs-3 text-info"></i>
+        </div>
+        <small class="text-muted">{{ workstations_count }} workstations</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <p class="text-muted mb-1">Roster Status</p>
+            <h3 class="mb-0">{{ available_count }}</h3>
+          </div>
+          <i class="bi bi-person-lines-fill fs-3 text-success"></i>
+        </div>
+        <small class="text-muted">{{ on_leave_count }} on leave, {{ pending_count }} pending</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Coverage Gaps</h5>
+        <a href="{% url 'clients' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-buildings"></i></a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Workstation</th>
+              <th class="text-end">Posted</th>
+              <th class="text-end">Needed</th>
+              <th class="text-end">Gap</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in coverage_rows %}
+              <tr>
+                <td>{{ row.client }}</td>
+                <td>{{ row.workstation.name }}</td>
+                <td class="text-end">{{ row.posted }}</td>
+                <td class="text-end">{{ row.required }}</td>
+                <td class="text-end"><span class="badge text-bg-warning">{{ row.shortage }}</span></td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">All configured posts are covered.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Deployments</h5>
+        <a href="{% url 'assignments' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left-right"></i></a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for deployment in recent_deployments %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between gap-2">
+              <strong>{{ deployment.employee }}</strong>
+              <span class="badge text-bg-light">{{ deployment.status }}</span>
+            </div>
+            <div class="small text-muted">
+              {{ deployment.client }}{% if deployment.workstation %} - {{ deployment.workstation.name }}{% endif %}
+            </div>
+            <div class="small text-muted">
+              {{ deployment.work_shift|default:"No shift" }}{% if deployment.assigned_at %} - {{ deployment.assigned_at|date:"M d, Y H:i" }}{% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="list-group-item text-center text-muted py-4">No deployment activity yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

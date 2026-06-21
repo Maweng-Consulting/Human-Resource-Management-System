@@ -1,122 +1,221 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-4">
-        <p>Name: {{client.name}}</p>
-        <p>Phone No: {{client.phone_number}}</p>
-        <p>Email: {{client.email}}</p>
-        <p>Contract Started on: {{client.contract_start_date}}</p>
+<div class="client-profile">
+  <div class="client-profile-hero">
+    <div class="client-profile-title">
+      <div class="client-profile-mark"><i class="bi bi-buildings"></i></div>
+      <div>
+        <div class="ops-page-kicker">Client site</div>
+        <h3 class="mb-1">{{ client.name }}</h3>
+        <div class="client-profile-meta">
+          <span><i class="bi bi-telephone"></i>{{ client.phone_number|default:"No phone" }}</span>
+          <span><i class="bi bi-envelope"></i>{{ client.email|default:"No email" }}</span>
+          <span><i class="bi bi-geo-alt"></i>{{ client.town|default:client.location_description|default:"No location" }}</span>
+        </div>
+      </div>
     </div>
-    <div class="col-4">
-        <p>Location: {{client.location_description}}</p>
-        <p>Guards Posted: {{client.guards_posted}}</p>
-        <p>Guards Needed: {{client.guards_needed}}</p>
-        <p>Work Shift: {{client.work_shift}}</p>
+    <div class="client-profile-actions">
+      {% if open_posts %}
+        <span class="badge text-bg-warning">{{ open_posts }} open posts</span>
+      {% else %}
+        <span class="badge text-bg-success">Fully covered</span>
+      {% endif %}
+      <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#editClientModal{{ client.id }}">
+        <i class="bi bi-pencil-square"></i> Edit Client
+      </button>
+      <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#newWorkstationModal{{ client.id }}">
+        <i class="bi bi-plus-lg"></i> Workstation
+      </button>
     </div>
-    <div class="col-4">
-        <p>Postal Address: {{client.postal_address}}</p>
-        <p>Town: {{client.town}}</p>
-        <p>County: {{client.county}}</p>
-        <p>Country: {{client.country}}</p>
+  </div>
+
+  <div class="client-stat-grid">
+    <div class="client-stat-card">
+      <span>Coverage</span>
+      <strong>{{ coverage_percent }}%</strong>
+      <div class="client-progress"><span style="width: {{ coverage_bar_percent }}%"></span></div>
     </div>
+    <div class="client-stat-card">
+      <span>Guards Posted</span>
+      <strong>{{ total_posted }}</strong>
+      <small>{{ total_required }} required</small>
+    </div>
+    <div class="client-stat-card">
+      <span>Workstations</span>
+      <strong>{{ workstation_count }}</strong>
+      <small>Active site posts</small>
+    </div>
+    <div class="client-stat-card">
+      <span>Default Shift</span>
+      <strong>{{ client.work_shift|default:"Not set" }}</strong>
+      <small>{{ client.contract_start_date|default:"No contract date" }}</small>
+    </div>
+  </div>
+
+  <div class="client-layout-grid">
+    <section class="card client-detail-card">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Contact & Contract</h5>
+        <small class="text-muted">Primary relationship details</small>
+      </div>
+      <div class="card-body">
+        <div class="client-info-list">
+          <div><span>Phone Number</span><strong>{{ client.phone_number|default:"-" }}</strong></div>
+          <div><span>Email</span><strong>{{ client.email|default:"-" }}</strong></div>
+          <div><span>Contract Start</span><strong>{{ client.contract_start_date|default:"-" }}</strong></div>
+          <div><span>Contract Guard Need</span><strong>{{ client.guards_needed|default:"0" }}</strong></div>
+          <div><span>Contract Posted</span><strong>{{ client.guards_posted|default:"0" }}</strong></div>
+          <div><span>Default Shift</span><strong>{{ client.work_shift|default:"-" }}</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card client-detail-card">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Location</h5>
+        <small class="text-muted">Where the client site is based</small>
+      </div>
+      <div class="card-body">
+        <div class="client-info-list">
+          <div><span>Address</span><strong>{{ client.postal_address|default:"-" }}</strong></div>
+          <div><span>Town</span><strong>{{ client.town|default:"-" }}</strong></div>
+          <div><span>County</span><strong>{{ client.county|default:"-" }}</strong></div>
+          <div><span>Country</span><strong>{{ client.country|default:"-" }}</strong></div>
+        </div>
+        <div class="client-location-note">
+          <span>Location Description</span>
+          <p>{{ client.location_description|default:"No location description has been added." }}</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card client-detail-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Workstations</h5>
+        <small class="text-muted">Coverage requirements by post</small>
+      </div>
+      <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newWorkstationModal{{ client.id }}">
+        <i class="bi bi-plus-lg"></i> New Workstation
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Post</th>
+            <th class="text-end">Needed</th>
+            <th class="text-end">Posted</th>
+            <th>Shift</th>
+            <th>Coverage</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for workstation in workstations %}
+            <tr>
+              <td><strong>{{ workstation.name }}</strong></td>
+              <td class="text-end">{{ workstation.guards_needed }}</td>
+              <td class="text-end">{{ workstation.guards_posted }}</td>
+              <td>{{ workstation.work_shift }}</td>
+              <td>
+                {% if workstation.guards_posted >= workstation.guards_needed %}
+                  <span class="badge text-bg-success">Covered</span>
+                {% else %}
+                  <span class="badge text-bg-warning">Needs guards</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editWorkstationModal{{ workstation.id }}" title="Edit workstation">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#deleteWorkstationModal{{ workstation.id }}" title="Delete workstation">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+              {% include "workstations/delete_workstation.html" %}
+              {% include "workstations/edit_workstation.html" %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No workstations have been added for this client.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card client-detail-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Assigned Guards</h5>
+        <small class="text-muted">{{ total_posted }} guards currently linked to this client</small>
+      </div>
+      {% if over_posted %}
+        <span class="badge text-bg-warning">{{ over_posted }} above requirement</span>
+      {% endif %}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Guard</th>
+            <th>Position</th>
+            <th>ID Number</th>
+            <th>Phone</th>
+            <th>Workstation</th>
+            <th>Shift</th>
+            <th class="text-end">Open</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for employee in page_obj %}
+            <tr>
+              <td>
+                <div class="ops-person-cell">
+                  <span class="ops-avatar">{{ employee.first_name|first }}{{ employee.last_name|first }}</span>
+                  <div>
+                    <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+                    <div class="small text-muted">{{ employee.gender|default:"-" }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ employee.position|default:"-" }}</td>
+              <td>{{ employee.id_number|default:"-" }}</td>
+              <td>{{ employee.phone_number|default:"-" }}</td>
+              <td>{{ employee.workstation|default:"Unassigned" }}</td>
+              <td>{{ employee.workshift|default:"-" }}</td>
+              <td class="text-end">
+                <a href="{% url 'employee-details' employee.id %}" class="btn btn-outline-secondary btn-sm" title="View employee">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-4">No guards are assigned to this client yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="card-footer bg-white">
+        <nav aria-label="Assigned guards pages">
+          <ul class="pagination justify-content-end mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    {% endif %}
+  </section>
 </div>
 
-<div class="row mt-4"></div>
-<hr>
-
-<div class="row">
-  <div class="col">
-    <h3>Work Stations</h3>
-  </div>
-  <div class="col">
-    <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newWorkstationModal{{client.id}}">New Workstation</a>
-  </div>
-</div>
-<div class="table-responsive small">
-    <table class="table table-sm">
-      <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Name</th>
-          <th scope="col">Guards Needed</th>
-          <th scope="col">Guards Posted</th>
-          <th scope="col">Work Shift</th>
-          <th scope="col" colspan="2"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for workstation in workstations %}
-        <tr>
-          <td>{{workstation.id}}</td>
-          <td>{{workstation.name}}</td>
-          <td>{{workstation.guards_needed}}</td>
-          <td>{{workstation.guards_posted}}</td>
-          <td>{{workstation.work_shift}}</td>
-         
-          <td><a class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editWorkstationModal{{ workstation.id }}">
-            <i class="bi bi-pencil-square"></i>
-          </a></td>
-          <td><a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteWorkstationModal{{workstation.id}}">
-            <i class="bi bi-trash"></i>
-          </a></td>
-          {% include "workstations/delete_workstation.html" %}
-          {% include "workstations/edit_workstation.html" %}
-        </tr>
-        {% endfor %}
-
-      </tbody>
-    </table>
-  
-  </div>
+{% include "clients/edit_client.html" %}
 {% include "workstations/new_workstation.html" %}
-<hr>
-<div class="row mt-4"></div>
-<h3>Guards Lists</h3>
-<div class="table-responsive small">
-    <table class="table table-sm">
-      <thead>
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Name</th>
-          <th scope="col">Position</th>
-          <th scope="col">ID Number</th>
-          <th scope="col">Phone</th>
-          <th scope="col">Gender</th>
-          <th scope="col">Address</th>
-          <th scope="col"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for employee in page_obj %}
-        <tr>
-          <td>{{employee.id}}</td>
-          <td>{{employee.first_name}} {{employee.last_name}}</td>
-          <td>{{employee.position}}</td>
-          <td>{{employee.id_number}}</td>
-          <td>{{employee.phone_number}}</td>
-          <td>{{employee.gender}}</td>
-          <td>{{employee.employee_address}}</td>
-          <td>
-            <a href="{% url 'employee-details' employee.id %}" class="btn btn-info btn-sm"><i class="bi bi-eye-fill"></i></a>
-          </td>
-        </tr>
-        {% endfor %}
-
-      </tbody>
-    </table>
-    <div>
-      <nav aria-label="Page navigation example">
-        <ul class="pagination justify-content-end">
-          {% if page_obj.has_previous %}   
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
-          {% endif %}
-          <a class="page-link" href="#">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a>
-          {% if page_obj.has_next %}    
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-          {% endif %}   
-        </ul>
-      </nav>
-    </div>
-  </div>
 {% endblock content %}

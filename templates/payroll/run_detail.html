@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title=payroll_run payroll_subtitle="Review gross pay, deductions, PAYE, and net pay for this payroll period." %}
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">Payslip Lines</h5>
+      <small class="text-muted">{{ lines|length }} generated employee records</small>
+    </div>
+    <span class="badge text-bg-success">{{ payroll_run.status }}</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Basis</th>
+          <th class="text-end">Base</th>
+          <th class="text-end">Overtime</th>
+          <th class="text-end">Gross</th>
+          <th class="text-end">Common</th>
+          <th class="text-end">Personal</th>
+          <th class="text-end">PAYE</th>
+          <th class="text-end">Net</th>
+          <th class="text-end">Payslip</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in lines %}
+          <tr>
+            <td>
+              <strong>{{ line.employee }}</strong>
+              <div class="small text-muted">{{ line.employee.id_number|default:"No ID" }}</div>
+            </td>
+            <td>{{ line.pay_basis }}</td>
+            <td class="text-end">{{ line.base_pay }}</td>
+            <td class="text-end">{{ line.overtime_pay }}</td>
+            <td class="text-end">{{ line.gross_pay }}</td>
+            <td class="text-end">{{ line.common_deductions }}</td>
+            <td class="text-end">{{ line.personal_deductions }}</td>
+            <td class="text-end">{{ line.paye }}</td>
+            <td class="text-end"><strong>{{ line.net_pay }}</strong></td>
+            <td class="text-end"><a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll-payslip' line.id %}"><i class="bi bi-printer"></i></a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="10" class="text-center text-muted py-4">No payroll lines were generated. Add active contracts and run payroll again.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

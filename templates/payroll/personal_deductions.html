@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title="Personal Deductions" payroll_subtitle="Track employee-specific deductions such as loans, pension contributions, and balances." %}
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">Employee Deduction Register</h5>
+      <small class="text-muted">{{ personal_deductions|length }} employee-specific deduction records</small>
+    </div>
+    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newPersonalDeductionModal">
+      <i class="bi bi-plus-lg"></i> New Personal Deduction
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Deduction</th>
+          <th>Type</th>
+          <th class="text-end">Value</th>
+          <th class="text-end">Balance</th>
+          <th>Period</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for deduction in personal_deductions %}
+          <tr>
+            <td><strong>{{ deduction.employee }}</strong></td>
+            <td>{{ deduction.name }}</td>
+            <td>{{ deduction.value_type }}</td>
+            <td class="text-end">{{ deduction.value }}</td>
+            <td class="text-end">{{ deduction.balance|default:"-" }}</td>
+            <td>{{ deduction.start_date }}{% if deduction.end_date %} - {{ deduction.end_date }}{% endif %}</td>
+            <td>
+              {% if deduction.status == "Active" %}
+                <span class="badge text-bg-success">Active</span>
+              {% elif deduction.status == "Paused" %}
+                <span class="badge text-bg-warning">Paused</span>
+              {% else %}
+                <span class="badge text-bg-light">{{ deduction.status }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editPersonalDeductionModal{{ deduction.id }}" title="Edit personal deduction">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No personal deductions have been added.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for deduction in personal_deductions %}
+  <div class="modal fade" id="editPersonalDeductionModal{{ deduction.id }}" tabindex="-1" aria-labelledby="editPersonalDeductionModalLabel{{ deduction.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h1 class="modal-title fs-5" id="editPersonalDeductionModalLabel{{ deduction.id }}">Edit Personal Deduction</h1>
+            <small class="text-muted">{{ deduction.employee }}</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{% url 'edit-personal-deduction' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="personal_deduction_id" value="{{ deduction.id }}">
+          <div class="modal-body">
+            <div class="payroll-form-stack">
+              <div>
+                <label class="form-label">Employee</label>
+                <select class="form-select" name="employee_id" required>
+                  {% for employee in employees %}
+                    <option value="{{ employee.id }}" {% if employee.id == deduction.employee.id %}selected{% endif %}>{{ employee }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Deduction Name</label>
+                <input class="form-control" name="name" value="{{ deduction.name }}" required>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Type</label>
+                  <select class="form-select" name="value_type" required>
+                    <option value="Amount" {% if deduction.value_type == "Amount" %}selected{% endif %}>Fixed amount</option>
+                    <option value="Percentage" {% if deduction.value_type == "Percentage" %}selected{% endif %}>Percentage</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Value</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="value" value="{{ deduction.value }}" required>
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Balance</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="balance" value="{{ deduction.balance|default_if_none:'' }}">
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Start Date</label>
+                  <input class="form-control" type="date" name="start_date" value="{{ deduction.start_date|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">End Date</label>
+                  <input class="form-control" type="date" name="end_date" value="{{ deduction.end_date|date:'Y-m-d' }}">
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                  <option value="Active" {% if deduction.status == "Active" %}selected{% endif %}>Active</option>
+                  <option value="Paused" {% if deduction.status == "Paused" %}selected{% endif %}>Paused</option>
+                  <option value="Completed" {% if deduction.status == "Completed" %}selected{% endif %}>Completed</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" name="notes" rows="3">{{ deduction.notes|default:'' }}</textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<div class="modal fade" id="newPersonalDeductionModal" tabindex="-1" aria-labelledby="newPersonalDeductionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h1 class="modal-title fs-5" id="newPersonalDeductionModalLabel">New Personal Deduction</h1>
+          <small class="text-muted">Tied to one employee only</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'create-personal-deduction' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="payroll-form-stack">
+            <div>
+              <label class="form-label">Employee</label>
+              <select class="form-select" name="employee_id" required>
+                <option value="">Select employee</option>
+                {% for employee in employees %}
+                  <option value="{{ employee.id }}">{{ employee }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Deduction Name</label>
+              <input class="form-control" name="name" placeholder="Staff loan" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="value_type" required>
+                  <option value="Amount">Fixed amount</option>
+                  <option value="Percentage">Percentage</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Value</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="value" required>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Balance</label>
+              <input class="form-control" type="number" step="0.01" min="0" name="balance">
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Start Date</label>
+                <input class="form-control" type="date" name="start_date" required>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">End Date</label>
+                <input class="form-control" type="date" name="end_date">
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Status</label>
+              <select class="form-select" name="status">
+                <option value="Active">Active</option>
+                <option value="Paused">Paused</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" name="notes" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Personal Deduction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 
-from apps.users.models import User
+from apps.employees.models import Employee
 from apps.leave.models import EmployeeLeave
 
 
@@ -24,7 +24,7 @@ def leave_applications(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    employees = User.objects.filter(role="Employee")
+    employees = Employee.objects.exclude(status__in=["Pending Approval", "Declined"])
 
     context = {"page_obj": page_obj, "employees": employees}
 

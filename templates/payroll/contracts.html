@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title="Employee Contracts" payroll_subtitle="Define how each employee is paid, their active salary terms, and overtime rates." %}
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">Contracts Register</h5>
+      <small class="text-muted">{{ contracts|length }} configured contract records</small>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="badge text-bg-light align-self-center">{{ active_contracts_count }} active</span>
+      <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newContractModal">
+        <i class="bi bi-plus-lg"></i> New Contract
+      </button>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Basis</th>
+          <th class="text-end">Monthly</th>
+          <th class="text-end">Daily</th>
+          <th class="text-end">Overtime</th>
+          <th>Period</th>
+          <th>Status</th>
+          <th class="text-end">Open</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for contract in contracts %}
+          <tr>
+            <td>
+              <strong>{{ contract.employee }}</strong>
+              <div class="small text-muted">{{ contract.title }}</div>
+            </td>
+            <td>{{ contract.pay_basis }}</td>
+            <td class="text-end">{{ contract.monthly_salary }}</td>
+            <td class="text-end">{{ contract.daily_rate }}</td>
+            <td class="text-end">{{ contract.overtime_rate }}</td>
+            <td>{{ contract.start_date }}{% if contract.end_date %} - {{ contract.end_date }}{% endif %}</td>
+            <td>
+              {% if contract.is_active %}
+                <span class="badge text-bg-success">Active</span>
+              {% else %}
+                <span class="badge text-bg-light">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editContractModal{{ contract.id }}" title="Edit contract">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll-contract-detail' contract.id %}">
+                <i class="bi bi-box-arrow-up-right"></i> Details
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No contracts yet. Add the first contract to make payroll generation usable.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for contract in contracts %}
+  <div class="modal fade" id="editContractModal{{ contract.id }}" tabindex="-1" aria-labelledby="editContractModalLabel{{ contract.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h1 class="modal-title fs-5" id="editContractModalLabel{{ contract.id }}">Edit Contract</h1>
+            <small class="text-muted">{{ contract.employee }}</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{% url 'edit-contract' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="contract_id" value="{{ contract.id }}">
+          <div class="modal-body">
+            <div class="payroll-form-stack">
+              <div>
+                <label class="form-label">Employee</label>
+                <input class="form-control" value="{{ contract.employee }}" readonly>
+                <div class="form-text">The employee cannot be changed after the contract is created.</div>
+              </div>
+              <div>
+                <label class="form-label">Contract Title</label>
+                <input class="form-control" name="title" value="{{ contract.title }}" required>
+              </div>
+              <div>
+                <label class="form-label">Pay Basis</label>
+                <select class="form-select" name="pay_basis" required>
+                  <option value="Monthly" {% if contract.pay_basis == "Monthly" %}selected{% endif %}>Monthly salary</option>
+                  <option value="Daily" {% if contract.pay_basis == "Daily" %}selected{% endif %}>Daily work</option>
+                </select>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Monthly Salary</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="monthly_salary" value="{{ contract.monthly_salary }}">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Daily Rate</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="daily_rate" value="{{ contract.daily_rate }}">
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Overtime Rate</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="overtime_rate" value="{{ contract.overtime_rate }}">
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Start Date</label>
+                  <input class="form-control" type="date" name="start_date" value="{{ contract.start_date|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">End Date</label>
+                  <input class="form-control" type="date" name="end_date" value="{{ contract.end_date|date:'Y-m-d' }}">
+                </div>
+              </div>
+              
+              <div>
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status" required>
+                  <option value="Active" {% if contract.is_active %}selected{% endif %}>Active</option>
+                  <option value="Inactive" {% if not contract.is_active %}selected{% endif %}>Inactive</option>
+                </select>
+                <div class="form-text">Only one contract can be active for the same employee.</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<div class="modal fade" id="newContractModal" tabindex="-1" aria-labelledby="newContractModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h1 class="modal-title fs-5" id="newContractModalLabel">New Contract</h1>
+          <small class="text-muted">Daily work or monthly salary terms</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'create-contract' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="payroll-form-stack">
+            <div>
+              <label class="form-label">Employee</label>
+              <select class="form-select" name="employee_id" required>
+                <option value="">Select employee</option>
+                {% for employee in employees %}
+                  <option value="{{ employee.id }}">{{ employee }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Contract Title</label>
+              <input class="form-control" name="title" value="Employment Contract" required>
+            </div>
+            <div>
+              <label class="form-label">Pay Basis</label>
+              <select class="form-select" name="pay_basis" required>
+                <option value="Monthly">Monthly salary</option>
+                <option value="Daily">Daily work</option>
+              </select>
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Monthly Salary</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="monthly_salary" value="0">
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Daily Rate</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="daily_rate" value="0">
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Overtime Rate</label>
+              <input class="form-control" type="number" step="0.01" min="0" name="overtime_rate" value="0">
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Start Date</label>
+                <input class="form-control" type="date" name="start_date" required>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">End Date</label>
+                <input class="form-control" type="date" name="end_date">
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" name="notes" rows="3"></textarea>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="contractActive" checked>
+              <label class="form-check-label" for="contractActive">Active contract</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Contract</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

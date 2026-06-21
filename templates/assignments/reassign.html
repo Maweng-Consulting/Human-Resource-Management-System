@@ -1,45 +1,66 @@
-<div class="modal fade" id="reassignModal{{employee.id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
+<div class="modal fade" id="reassignModal{{ employee.id }}" tabindex="-1" aria-labelledby="reassignModalLabel{{ employee.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form action="{% url 'reassign-employee' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
         <div class="modal-header">
-          <h1 class="modal-title fs-5 text-center">Reassign Employee</h1>
+          <div>
+            <h1 class="modal-title fs-5" id="reassignModalLabel{{ employee.id }}">Reassign Guard</h1>
+            <p class="text-muted mb-0 small">{{ employee.first_name }} {{ employee.last_name }}</p>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-            <form action="{% url 'reassign-employee' %}" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="modal-body">
+        <div class="modal-body">
+          <input type="hidden" name="employee_id" id="employee_id_{{ employee.id }}" value="{{ employee.id }}">
 
-                <input type="hidden" name="employee_id" id="employee_id" value="{{employee.id}}" />
+          <div class="ops-assignment-summary mb-3">
+            <div>
+              <span>Current client</span>
+              <strong>{{ employee.client|default:"Unassigned" }}</strong>
+            </div>
+            <div>
+              <span>Current post</span>
+              <strong>{{ employee.workstation|default:"No workstation" }}</strong>
+            </div>
+          </div>
 
-                <div class="mb-3"> 
-                    <label class="form-label fw-bold">Workstation</label>
-                    <select class="form-select" name="workstation" id="workstation">
-                        <option>{{employee.workstation.name}}</option>
-                        {% for workstation in workstations %}
-                            {% if workstation.id != employee.workstation.id %}
-                                <option value="{{workstation.id}}">{{workstation.name}}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-              
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Work Shift</label>
-                    <select class="form-select" name="work_shift" id="work_shift">
-                        <option>{{employee.workshift}}</option>
-                        {% for shift in work_shifts %}
-                            {% if shift != employee.workshift %}
-                                <option value="{{shift}}">{{shift}}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
-                 
-                <div class="text-center mt-2">
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
-              </div>
-              </form>
-      </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold" for="workstation_{{ employee.id }}">Workstation</label>
+            <select class="form-select" name="workstation" id="workstation_{{ employee.id }}" required>
+              {% if employee.workstation %}
+                <option value="{{ employee.workstation.id }}">{{ employee.workstation.client }} - {{ employee.workstation.name }}</option>
+              {% else %}
+                <option value="">Select workstation</option>
+              {% endif %}
+              {% for workstation in workstations %}
+                {% if workstation.id != employee.workstation.id %}
+                  <option value="{{ workstation.id }}">{{ workstation.client }} - {{ workstation.name }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label fw-bold" for="work_shift_{{ employee.id }}">Work Shift</label>
+            <select class="form-select" name="work_shift" id="work_shift_{{ employee.id }}" required>
+              {% if employee.workshift %}
+                <option value="{{ employee.workshift }}">{{ employee.workshift }}</option>
+              {% else %}
+                <option value="">Select shift</option>
+              {% endif %}
+              {% for shift in work_shifts %}
+                {% if shift != employee.workshift %}
+                  <option value="{{ shift }}">{{ shift }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-left-right"></i> Reassign</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>

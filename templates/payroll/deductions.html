@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title="Global Deductions" payroll_subtitle="Configure statutory and common deductions applied to all employees." %}
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">Deductions Register</h5>
+      <small class="text-muted">Global deductions applied to every payroll line</small>
+    </div>
+    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newDeductionModal">
+      <i class="bi bi-plus-lg"></i> New Deduction
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th class="text-end">Value</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for deduction in common_deductions %}
+          <tr>
+            <td><strong>{{ deduction.name }}</strong></td>
+            <td>{{ deduction.value_type }}</td>
+            <td class="text-end">{{ deduction.value }}</td>
+            <td>{{ deduction.description|default:"-" }}</td>
+            <td>
+              {% if deduction.is_active %}
+                <span class="badge text-bg-success">Active</span>
+              {% else %}
+                <span class="badge text-bg-light">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editDeductionModal{{ deduction.id }}" title="Edit deduction">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No common deductions configured.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% for deduction in common_deductions %}
+  <div class="modal fade" id="editDeductionModal{{ deduction.id }}" tabindex="-1" aria-labelledby="editDeductionModalLabel{{ deduction.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h1 class="modal-title fs-5" id="editDeductionModalLabel{{ deduction.id }}">Edit Deduction</h1>
+            <small class="text-muted">{{ deduction.name }}</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{% url 'edit-common-deduction' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="deduction_id" value="{{ deduction.id }}">
+          <div class="modal-body">
+            <div class="payroll-form-stack">
+              <div>
+                <label class="form-label">Name</label>
+                <input class="form-control" name="name" value="{{ deduction.name }}" required>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Type</label>
+                  <select class="form-select" name="value_type" required>
+                    <option value="Percentage" {% if deduction.value_type == "Percentage" %}selected{% endif %}>Percentage</option>
+                    <option value="Amount" {% if deduction.value_type == "Amount" %}selected{% endif %}>Fixed amount</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Value</label>
+                  <input class="form-control" type="number" step="0.01" min="0" name="value" value="{{ deduction.value }}" required>
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="3">{{ deduction.description|default:'' }}</textarea>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="is_active" id="deductionActive{{ deduction.id }}" {% if deduction.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="deductionActive{{ deduction.id }}">Apply to all payroll runs</label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<div class="modal fade" id="newDeductionModal" tabindex="-1" aria-labelledby="newDeductionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h1 class="modal-title fs-5" id="newDeductionModalLabel">New Deduction</h1>
+          <small class="text-muted">SHIF, Housing Levy, NSSF tiers, and similar deductions</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{% url 'create-common-deduction' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="payroll-form-stack">
+            <div>
+              <label class="form-label">Name</label>
+              <input class="form-control" name="name" placeholder="SHIF" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="value_type" required>
+                  <option value="Percentage">Percentage</option>
+                  <option value="Amount">Fixed amount</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label">Value</label>
+                <input class="form-control" type="number" step="0.01" min="0" name="value" required>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Description</label>
+              <textarea class="form-control" name="description" rows="3"></textarea>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="deductionActive" checked>
+              <label class="form-check-label" for="deductionActive">Apply to all payroll runs</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Save Deduction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

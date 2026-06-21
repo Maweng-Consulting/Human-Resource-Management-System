@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "payroll/_module_nav.html" with payroll_title="Payroll Runs" payroll_subtitle="Generate payroll periods, review totals, and open payslip lines." %}
+
+{% if employees_without_contract %}
+  <div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+    <i class="bi bi-exclamation-triangle mt-1"></i>
+    <div>
+      <strong>{{ employees_without_contract }} employee{{ employees_without_contract|pluralize }} will be skipped.</strong>
+      Payroll is generated from active contracts only. Add or activate contracts before running payroll for those employees.
+    </div>
+  </div>
+{% endif %}
+
+<div class="card ops-table-card">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0">Payroll Run History</h5>
+      <small class="text-muted">{{ payroll_runs|length }} payroll periods generated</small>
+    </div>
+    <span class="badge text-bg-light">Draft and processed runs</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Period</th>
+          <th>Status</th>
+          <th>Processed By</th>
+          <th>Processed At</th>
+          <th class="text-end">Lines</th>
+          <th class="text-end">Open</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in payroll_runs %}
+          <tr>
+            <td><strong>{{ run.month }} {{ run.year }}</strong></td>
+            <td><span class="badge text-bg-success">{{ run.status }}</span></td>
+            <td>{{ run.processed_by|default:"-" }}</td>
+            <td>{{ run.processed_at|default:"-" }}</td>
+            <td class="text-end">{{ run.lines.count }}</td>
+            <td class="text-end">
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll-run-detail' run.id %}">
+                <i class="bi bi-box-arrow-up-right"></i> View
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No payroll runs yet. Use the run form above to generate the first period.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

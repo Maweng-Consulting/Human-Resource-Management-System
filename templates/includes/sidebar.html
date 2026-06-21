@@ -1,145 +1,166 @@
-<div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
-    <div class="offcanvas-md offcanvas-end bg-body-tertiary" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="sidebarMenuLabel">M-6 WM</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{% url 'home' %}">
-              <svg class="bi"><use xlink:href="#house-fill"/></svg>
-              Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'clients' %}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-buildings-fill" viewBox="0 0 16 16">
-                <path d="M15 .5a.5.5 0 0 0-.724-.447l-8 4A.5.5 0 0 0 6 4.5v3.14L.342 9.526A.5.5 0 0 0 0 10v5.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V14h1v1.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5zM2 11h1v1H2zm2 0h1v1H4zm-1 2v1H2v-1zm1 0h1v1H4zm9-10v1h-1V3zM8 5h1v1H8zm1 2v1H8V7zM8 9h1v1H8zm2 0h1v1h-1zm-1 2v1H8v-1zm1 0h1v1h-1zm3-2v1h-1V9zm-1 2h1v1h-1zm-2-4h1v1h-1zm3 0v1h-1V7zm-2-2v1h-1V5zm1 0h1v1h-1z"/>
-              </svg>
-              Clients
-            </a>
-          </li>
-          <hr>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'job-roles' %}">
-              <svg class="bi"><use xlink:href="#people"/></svg>
-              Job Roles
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'employees' %}">
-              <svg class="bi"><use xlink:href="#people"/></svg>
-              Employees
-            </a>
-          </li>
-
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'assignments' %}">
-              <i class="bi bi-arrow-clockwise"></i>
-              Assignments
-            </a>
-          </li>
-          
-         
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'attendances' %}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-database" viewBox="0 0 16 16">
-                <path d="M4.318 2.687C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4c0-.374.356-.875 1.318-1.313ZM13 5.698V7c0 .374-.356.875-1.318 1.313C10.766 8.729 9.464 9 8 9s-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 5.698ZM14 4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16s3.022-.289 4.096-.777C13.125 14.755 14 14.007 14 13V4Zm-1 4.698V10c0 .374-.356.875-1.318 1.313C10.766 11.729 9.464 12 8 12s-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 8.698Zm0 3V13c0 .374-.356.875-1.318 1.313C10.766 14.729 9.464 15 8 15s-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13s3.022-.289 4.096-.777c.324-.147.633-.323.904-.525Z"/>
-              </svg>
-              Attendance
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'leave-applications' %}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-database" viewBox="0 0 16 16">
-                <path d="M4.318 2.687C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4c0-.374.356-.875 1.318-1.313ZM13 5.698V7c0 .374-.356.875-1.318 1.313C10.766 8.729 9.464 9 8 9s-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 5.698ZM14 4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16s3.022-.289 4.096-.777C13.125 14.755 14 14.007 14 13V4Zm-1 4.698V10c0 .374-.356.875-1.318 1.313C10.766 11.729 9.464 12 8 12s-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 8.698Zm0 3V13c0 .374-.356.875-1.318 1.313C10.766 14.729 9.464 15 8 15s-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13s3.022-.289 4.096-.777c.324-.147.633-.323.904-.525Z"/>
-              </svg>
-              Leave
-            </a>
-          </li>
-          <hr>
-          <!--
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'tax-configurations' %}">
-              <i class="bi bi-coin"></i>
-              Tax Configurations
-            </a>
-          </li>
-          -->
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'payment-configs' %}">
-              <i class="bi bi-coin"></i>
-              Salary Configs
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'salaries' %}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16">
-                <path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.591v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718zm3.391-3.836c-1.043-.263-1.6-.825-1.6-1.616 0-.944.704-1.641 1.8-1.828v3.495l-.2-.05zm1.591 1.872c1.287.323 1.852.859 1.852 1.769 0 1.097-.826 1.828-2.2 1.939V8.73z"/>
-              </svg>
-              Earnings
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'overtimes' %}">
-              <i class="bi bi-cash-stack"></i>
-              Overtime
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'payslips' %}">
-              <i class="bi bi-bank"></i>
-              SP Invoices
-            </a>
-          </li>
-          <hr>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'equipments' %}">
-              <i class="bi bi-folder2"></i>
-              Equipments
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'issued-equipments' %}">
-              <i class="bi bi-folder-symlink"></i>
-              Issued Equipments
-            </a>
-          </li>
-
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'vehicles' %}">
-              <i class="bi bi-truck"></i>
-              Vehicles
-            </a>
-          </li>
-          
-          <!--
-            <hr>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'visitors' %}">
-              <svg class="bi"><use xlink:href="#people"/></svg>
-              Visitors
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'employees' %}">
-              <svg class="bi"><use xlink:href="#people"/></svg>
-              Check Ins/Outs
-            </a>
-          </li>
-          -->
-        </ul>
-        <hr class="my-3">
-
-        <ul class="nav flex-column mb-auto">
-          <li class="nav-item">
-            <a class="nav-link d-flex align-items-center gap-2" href="{% url 'logout' %}">
-              <svg class="bi"><use xlink:href="#door-closed"/></svg>
-              Sign out
-            </a>
-          </li>
-        </ul>
-      </div>
+{% with current_url=request.resolver_match.url_name %}
+<aside class="sidebar" id="sidebarMenu" aria-label="Primary navigation">
+  <div class="sidebar-mobile-header">
+    <div>
+      <div class="sidebar-mobile-title">M-6 Security</div>
+      <small>Workforce command</small>
     </div>
+    <button class="ops-icon-button sidebar-close" type="button" id="sidebarClose" aria-label="Close navigation">
+      <i class="bi bi-x-lg"></i>
+    </button>
   </div>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">Command</div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'home' %}active{% endif %}" {% if current_url == 'home' %}aria-current="page"{% endif %} href="{% url 'home' %}" title="Dashboard">
+          <i class="bi bi-grid-1x2"></i>
+          <span class="sidebar-label">Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'assignments' %}active{% endif %}" {% if current_url == 'assignments' %}aria-current="page"{% endif %} href="{% url 'assignments' %}" title="Assignments">
+          <i class="bi bi-diagram-3"></i>
+          <span class="sidebar-label">Assignments</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'attendances' %}active{% endif %}" {% if current_url == 'attendances' %}aria-current="page"{% endif %} href="{% url 'attendances' %}" title="Attendance">
+          <i class="bi bi-calendar2-check"></i>
+          <span class="sidebar-label">Attendance</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-section">People</div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'employees' %}active{% endif %}" {% if current_url == 'employees' %}aria-current="page"{% endif %} href="{% url 'employees' %}" title="Employees">
+          <i class="bi bi-person-badge"></i>
+          <span class="sidebar-label">Employees</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'leave-applications' %}active{% endif %}" {% if current_url == 'leave-applications' %}aria-current="page"{% endif %} href="{% url 'leave-applications' %}" title="Leave">
+          <i class="bi bi-calendar-heart"></i>
+          <span class="sidebar-label">Leave</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'job-roles' %}active{% endif %}" {% if current_url == 'job-roles' %}aria-current="page"{% endif %} href="{% url 'job-roles' %}" title="Job Roles">
+          <i class="bi bi-kanban"></i>
+          <span class="sidebar-label">Job Roles</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-section">Sites</div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'clients' %}active{% endif %}" {% if current_url == 'clients' %}aria-current="page"{% endif %} href="{% url 'clients' %}" title="Clients">
+          <i class="bi bi-building-check"></i>
+          <span class="sidebar-label">Clients</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'visitors' %}active{% endif %}" {% if current_url == 'visitors' %}aria-current="page"{% endif %} href="{% url 'visitors' %}" title="Visitors">
+          <i class="bi bi-person-lines-fill"></i>
+          <span class="sidebar-label">Visitors</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-section">Payroll</div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'payroll-dashboard' %}active{% endif %}" {% if current_url == 'payroll-dashboard' %}aria-current="page"{% endif %} href="{% url 'payroll-dashboard' %}" title="Payroll Overview">
+          <i class="bi bi-columns-gap"></i>
+          <span class="sidebar-label">Overview</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'payroll-contracts' or current_url == 'payroll-contract-detail' %}active{% endif %}" {% if current_url == 'payroll-contracts' or current_url == 'payroll-contract-detail' %}aria-current="page"{% endif %} href="{% url 'payroll-contracts' %}" title="Payroll Contracts">
+          <i class="bi bi-file-earmark-text"></i>
+          <span class="sidebar-label">Contracts</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'payroll-paye' %}active{% endif %}" {% if current_url == 'payroll-paye' %}aria-current="page"{% endif %} href="{% url 'payroll-paye' %}" title="PAYE">
+          <i class="bi bi-percent"></i>
+          <span class="sidebar-label">PAYE</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'payroll-deductions' or current_url == 'payroll-configurations' or current_url == 'payroll-personal-deductions' %}active{% endif %}" {% if current_url == 'payroll-deductions' or current_url == 'payroll-configurations' or current_url == 'payroll-personal-deductions' %}aria-current="page"{% endif %} href="{% url 'payroll-deductions' %}" title="Payroll Deductions">
+          <i class="bi bi-sliders2"></i>
+          <span class="sidebar-label">Deductions</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'payroll-runs' or current_url == 'payroll-run-detail' or current_url == 'payroll-payslip' %}active{% endif %}" {% if current_url == 'payroll-runs' or current_url == 'payroll-run-detail' or current_url == 'payroll-payslip' %}aria-current="page"{% endif %} href="{% url 'payroll-runs' %}" title="Payroll Runs">
+          <i class="bi bi-receipt-cutoff"></i>
+          <span class="sidebar-label">Runs</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-section">Finance</div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'payment-configs' %}active{% endif %}" {% if current_url == 'payment-configs' %}aria-current="page"{% endif %} href="{% url 'payment-configs' %}" title="Salary Configs">
+          <i class="bi bi-toggles2"></i>
+          <span class="sidebar-label">Salary Configs</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'salaries' %}active{% endif %}" {% if current_url == 'salaries' %}aria-current="page"{% endif %} href="{% url 'salaries' %}" title="Earnings">
+          <i class="bi bi-currency-exchange"></i>
+          <span class="sidebar-label">Earnings</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'overtimes' %}active{% endif %}" {% if current_url == 'overtimes' %}aria-current="page"{% endif %} href="{% url 'overtimes' %}" title="Overtime">
+          <i class="bi bi-hourglass-split"></i>
+          <span class="sidebar-label">Overtime</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'payslips' %}active{% endif %}" {% if current_url == 'payslips' %}aria-current="page"{% endif %} href="{% url 'payslips' %}" title="SP Invoices">
+          <i class="bi bi-file-earmark-spreadsheet"></i>
+          <span class="sidebar-label">SP Invoices</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-section">Assets</div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'equipments' %}active{% endif %}" {% if current_url == 'equipments' %}aria-current="page"{% endif %} href="{% url 'equipments' %}" title="Equipment">
+          <i class="bi bi-boxes"></i>
+          <span class="sidebar-label">Equipment</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'issued-equipments' %}active{% endif %}" {% if current_url == 'issued-equipments' %}aria-current="page"{% endif %} href="{% url 'issued-equipments' %}" title="Issued Equipment">
+          <i class="bi bi-clipboard2-check"></i>
+          <span class="sidebar-label">Issued Equipment</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if current_url == 'vehicles' %}active{% endif %}" {% if current_url == 'vehicles' %}aria-current="page"{% endif %} href="{% url 'vehicles' %}" title="Vehicles">
+          <i class="bi bi-truck-front"></i>
+          <span class="sidebar-label">Vehicles</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a class="nav-link" href="{% url 'logout' %}" title="Sign out">
+      <i class="bi bi-box-arrow-right"></i>
+      <span class="sidebar-label">Sign out</span>
+    </a>
+  </div>
+</aside>
+{% endwith %}

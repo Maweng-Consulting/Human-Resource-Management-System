@@ -1,289 +1,335 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row mb-3">
-    <div class="col-4"></div>
-    <div class="col-4">
-      {% if employee.passport_photo %}
-        <img src="{{employee.passport_photo.url}}" height="100" width="100" alt="Employee Passport Image" />
+<div class="employee-profile">
+  <div class="employee-profile-hero">
+    <div class="employee-profile-main">
+      <div class="employee-profile-avatar">
+        {% if employee.passport_photo %}
+          <img src="{{ employee.passport_photo.url }}" alt="{{ employee }} passport photo">
+        {% else %}
+          <span>{{ employee.first_name|first }}{{ employee.last_name|first }}</span>
+        {% endif %}
+      </div>
+      <div class="employee-profile-title">
+        <div class="ops-page-kicker">Employee profile</div>
+        <h3 class="mb-1">{{ employee.first_name }} {{ employee.last_name }}</h3>
+        <div class="employee-profile-meta">
+          <span><i class="bi bi-person-vcard"></i>{{ employee.position|default:"No role assigned" }}</span>
+          <span><i class="bi bi-telephone"></i>{{ employee.phone_number|default:"No phone" }}</span>
+          <span><i class="bi bi-geo-alt"></i>{{ employee.residence|default:employee.town|default:"No residence" }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="employee-profile-actions">
+      {% if employee.status == "Pending Approval" %}
+        <span class="badge text-bg-warning">{{ employee.status }}</span>
+      {% elif employee.status == "Declined" or employee.status == "Suspended" %}
+        <span class="badge text-bg-danger">{{ employee.status }}</span>
+      {% else %}
+        <span class="badge text-bg-success">{{ employee.status }}</span>
       {% endif %}
+      <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ employee.id }}">
+        <i class="bi bi-pencil-square"></i> Edit
+      </button>
+      <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#approveEmployeeModal{{ employee.id }}">
+        <i class="bi bi-check2-circle"></i> Approve
+      </button>
+      <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#uploadDocumentsModal{{ employee.id }}">
+        <i class="bi bi-cloud-arrow-up"></i> Documents
+      </button>
     </div>
-    <div class="col-4"></div>
-    
-</div>
-<div class="row">
-    <h4>Personal Information</h4>
-    <hr>
-    <div class="col-4">
-        <p><b>Name:</b> {{employee.first_name}} {{employee.last_name}}</p>
-        <p><b>Position:</b> {{employee.position}}</p>
-        <p><b>Gender:</b> {{employee.gender}}</p>
-        <p><b>Phone Number:</b> {{employee.phone_number}}</p>
-    </div>
-    <div class="col-4">
-        <p><b>ID Number:</b> {{employee.id_number}}</p>
-        <p><b>NHIF Number:</b> {{employee.nhif_number}}</p>
-        <p><b>NSSF Number:</b> {{employee.nssf_number}}</p>
-        <p><b>Daily Pay:</b> {{employee.daily_rate}}</p>
-    </div>
-    <div class="col-4">
-        <p><b>Address:</b> {{employee.postal_address}}</p>
-        <p><b>Town:</b> {{employee.town}}</p>
-        <p><b>County:</b> {{employee.county}}</p>
-        <p><b>Country:</b> {{employee.country}}</p>
-    </div>
-</div>
-<div class="row mt-5"></div>
-<hr>
-<!--
-<div class="row mb-3">
-  <div class="col">
-    <h4>Bank Information</h4>
   </div>
-  <div class="col">
-    {% if banking_details_found %}
-    <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editBankDetailsModal{{employee.id}}">Edit Bank Details</a>
-    {% else %}
-    <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newBankDetailsModal{{employee.id}}">Add Bank Details</a>
-    {% endif %}
+
+  <div class="employee-profile-stats">
+    <div class="employee-mini-stat">
+      <span>ID Number</span>
+      <strong>{{ employee.id_number|default:"-" }}</strong>
+    </div>
+    <div class="employee-mini-stat">
+      <span>Workstation</span>
+      <strong>{{ employee.workstation|default:"Unassigned" }}</strong>
+    </div>
+    <div class="employee-mini-stat">
+      <span>Client</span>
+      <strong>{{ employee.client|default:"No client" }}</strong>
+    </div>
+    <div class="employee-mini-stat">
+      <span>Shift</span>
+      <strong>{{ employee.workshift|default:"Not set" }}</strong>
+    </div>
   </div>
-  
-</div>
-<div class="row">
-    <div class="col">
-        <p>Bank Name: {{employee.bankingdetails.bank_name}}</p>
-        <p>Branch Name: {{employee.bankingdetails.branch_name}}</p>
-        <p>Account Type: {{employee.bankingdetails.account_type}}</p>
-    </div>
-    <div class="col">
-        <p>Account Name: {{employee.bankingdetails.account_name}}</p>
-        <p>Account Number: {{employee.bankingdetails.account_number}}</p>
-    </div>
-</div>
-{% include "bank/new_bank_details.html" %}
-{% include "bank/edit_bank_details.html" %}
-<div class="row mt-5"></div>
-<hr>
--->
-<div class="row">
-    <div class="col">
-        <h3>Next of Kins</h3>
-    </div>
-    <div class="col">
-        <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newRelativeModal{{employee.id}}">Add Relative</a>
 
+  <div class="employee-layout-grid">
+    <section class="card employee-detail-card">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Personal Information</h5>
+        <small class="text-muted">Identity, contact, and address details</small>
+      </div>
+      <div class="card-body">
+        <div class="employee-info-list">
+          <div><span>Gender</span><strong>{{ employee.gender|default:"-" }}</strong></div>
+          <div><span>Phone Number</span><strong>{{ employee.phone_number|default:"-" }}</strong></div>
+          <div><span>KRA PIN</span><strong>{{ employee.kra_pin|default:"-" }}</strong></div>
+          <div><span>NHIF Number</span><strong>{{ employee.nhif_number|default:"-" }}</strong></div>
+          <div><span>NSSF Number</span><strong>{{ employee.nssf_number|default:"-" }}</strong></div>
+          <div><span>Postal Address</span><strong>{{ employee.postal_address|default:"-" }}</strong></div>
+          <div><span>Town</span><strong>{{ employee.town|default:"-" }}</strong></div>
+          <div><span>County</span><strong>{{ employee.county|default:"-" }}</strong></div>
+          <div><span>Country</span><strong>{{ employee.country|default:"-" }}</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card employee-detail-card">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Payroll Snapshot</h5>
+        <small class="text-muted">Current pay category and rates</small>
+      </div>
+      <div class="card-body">
+        <div class="employee-info-list">
+          <div><span>Job Group</span><strong>{{ employee.job_category.job_group|default:"-" }}</strong></div>
+          <div><span>Position</span><strong>{{ employee.position|default:"-" }}</strong></div>
+          <div><span>Daily Rate</span><strong>{{ employee.daily_rate|default:"0.00" }}</strong></div>
+          <div><span>Basic Salary</span><strong>{{ employee.basic_salary|default:"0.00" }}</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card employee-detail-card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="mb-0">Bank Details</h5>
+          <small class="text-muted">Payment destination details</small>
+        </div>
+        {% if banking_details_found %}
+          <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editBankDetailsModal{{ employee.id }}">
+            <i class="bi bi-pencil-square"></i> Edit
+          </button>
+        {% else %}
+          <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newBankDetailsModal{{ employee.id }}">
+            <i class="bi bi-plus-lg"></i> Add
+          </button>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if banking_details_found %}
+          <div class="employee-info-list">
+            <div><span>Bank</span><strong>{{ banking_info.bank_name }}</strong></div>
+            <div><span>Branch</span><strong>{{ banking_info.branch_name }}</strong></div>
+            <div><span>Account Name</span><strong>{{ banking_info.account_name }}</strong></div>
+            <div><span>Account Type</span><strong>{{ banking_info.account_type }}</strong></div>
+            <div><span>Account Number</span><strong>{{ banking_info.account_number }}</strong></div>
+          </div>
+        {% else %}
+          <div class="employee-empty-state">
+            <i class="bi bi-bank"></i>
+            <p>No bank details have been added.</p>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card employee-detail-card">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Deployment</h5>
+        <small class="text-muted">Current assignment and recent movement</small>
+      </div>
+      <div class="card-body">
+        <div class="employee-info-list mb-3">
+          <div><span>Client</span><strong>{{ employee.client|default:"No client assigned" }}</strong></div>
+          <div><span>Workstation</span><strong>{{ employee.workstation|default:"Unassigned" }}</strong></div>
+          <div><span>Work Shift</span><strong>{{ employee.workshift|default:"Not set" }}</strong></div>
+        </div>
+        <div class="employee-timeline">
+          {% for assignment in deployment_history %}
+            <div class="employee-timeline-item">
+              <span></span>
+              <div>
+                <strong>{{ assignment.workstation|default:"Unassigned" }}</strong>
+                <p>{{ assignment.client|default:"No client" }} · {{ assignment.status }} · {{ assignment.assigned_at|default:assignment.created }}</p>
+              </div>
+            </div>
+          {% empty %}
+            <div class="employee-empty-state employee-empty-state-compact">
+              <i class="bi bi-arrow-left-right"></i>
+              <p>No deployment history yet.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card employee-detail-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Next of Kin</h5>
+        <small class="text-muted">{{ family_members|length }} emergency contact records</small>
+      </div>
+      <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newRelativeModal{{ employee.id }}">
+        <i class="bi bi-plus-lg"></i> Add Relative
+      </button>
     </div>
-
-</div>
-<hr/>
-
-
-    <div class="table-responsive small">
-        <table class="table table-sm">
-          <thead>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Relationship</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Gender</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for family_member in family_members %}
             <tr>
-              <th scope="col">#</th>
-              <th scope="col">Name</th>
-              <th scope="col">Relationship</th>
-              <th scope="col">Email</th>
-              <th scope="col">Phone Number</th>
-              <th scope="col">Gender</th>
-              <th scope="col" colspan="2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for family_member in family_members %}
-            <tr>
-              <td>{{family_member.id}}</td>
-              <td>{{family_member.first_name}} {{family_member.last_name}}</td>
-              <td>{{family_member.relation}}</td>
-              <td>{{family_member.email}}</td>
-              <td>{{family_member.phone_number}}</td>
-              <td>{{family_member.gender}}</td>
-              <td><a class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editRelativeModal{{family_member.id}}">
-                <i class="bi bi-pencil-square"></i>
-              </a></td>
-              <td><a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteRelativeModal{{family_member.id}}">
-                <i class="bi bi-trash"></i>
-              </a></td>
+              <td><strong>{{ family_member.first_name }} {{ family_member.last_name }}</strong></td>
+              <td>{{ family_member.relation }}</td>
+              <td>{{ family_member.email|default:"-" }}</td>
+              <td>{{ family_member.phone_number }}</td>
+              <td>{{ family_member.gender|default:"-" }}</td>
+              <td class="text-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editRelativeModal{{ family_member.id }}" title="Edit relative">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#deleteRelativeModal{{ family_member.id }}" title="Delete relative">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
               {% include "family/edit_relative.html" %}
               {% include "family/delete_relative.html" %}
             </tr>
-            {% endfor %}
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No next of kin has been added.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-          </tbody>
-        </table>
-      
+  <section class="card employee-detail-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Education</h5>
+        <small class="text-muted">{{ education_details|length }} education records</small>
       </div>
-<div class="row mt-5"></div>
-<hr>
-<div class="row mt-4">
-    <div class="col">
-        <h3>Education Details</h3>
+      <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#newEducationModal{{ employee.id }}">
+        <i class="bi bi-plus-lg"></i> Add Education
+      </button>
     </div>
-  
-    <div class="col">
-        <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newEducationModal{{employee.id}}">Add Education Record</a>
-
-    </div>
-</div>
-<hr>
-<div class="row">
-    <div div class="table-responsive small">
-        <table class="table table-sm">
-          <thead>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Level</th>
+            <th>Start Year</th>
+            <th>Graduation Year</th>
+            <th>Created</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for education in education_details %}
             <tr>
-              <th scope="col">#</th>
-              <th scope="col">School Name</th>
-              <th scope="col">Level</th>
-              <th scope="col">Start Year</th>
-              <th scope="col">Graduation Year</th>
-              <th scope="col">Created At.</th>
-              <th scope="col" colspan="2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for education in education_details %}
-            <tr>
-              <td>{{education.id}}</td>
-              <td>{{education.school_name}}</td>
-              <td>{{education.level}}</td>
-              <td>{{education.start_year}}</td>
-              <td>{{education.graduation_year}}</td>
-              <td>{{education.created}}</td>
-              <td><a class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editEducationModal{{education.id}}">
-                <i class="bi bi-pencil-square"></i>
-              </a></td>
-              <td><a class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEducationModal{{education.id}}">
-                <i class="bi bi-trash"></i>
-              </a></td>
+              <td><strong>{{ education.school_name }}</strong></td>
+              <td>{{ education.level }}</td>
+              <td>{{ education.start_year|default:"-" }}</td>
+              <td>{{ education.graduation_year }}</td>
+              <td>{{ education.created }}</td>
+              <td class="text-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#editEducationModal{{ education.id }}" title="Edit education">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#deleteEducationModal{{ education.id }}" title="Delete education">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
               {% include "education/delete_education.html" %}
               {% include "education/edit_education.html" %}
-            </tr> 
-            {% endfor %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No education records have been added.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-          </tbody>
-        </table>
+  <section class="card employee-detail-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Documents</h5>
+        <small class="text-muted">Identity, compliance, academic, and referral files</small>
+      </div>
+      <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#uploadDocumentsModal{{ employee.id }}">
+        <i class="bi bi-cloud-arrow-up"></i> Upload
+      </button>
+    </div>
+    <div class="card-body">
+      {% if documents %}
+        <div class="employee-document-grid">
+          {% if documents.kcpe_certificate %}
+            <a href="{{ documents.kcpe_certificate.url }}" target="_blank" class="employee-document-card"><i class="bi bi-file-earmark-text"></i><span>KCPE Certificate</span></a>
+          {% endif %}
+          {% if documents.kcse_certificate %}
+            <a href="{{ documents.kcse_certificate.url }}" target="_blank" class="employee-document-card"><i class="bi bi-file-earmark-text"></i><span>KCSE Certificate</span></a>
+          {% endif %}
+          {% if documents.kra_certificate %}
+            <a href="{{ documents.kra_certificate.url }}" target="_blank" class="employee-document-card"><i class="bi bi-file-earmark-text"></i><span>KRA PIN Certificate</span></a>
+          {% endif %}
+          {% if documents.police_clearance %}
+            <a href="{{ documents.police_clearance.url }}" target="_blank" class="employee-document-card"><i class="bi bi-shield-check"></i><span>Police Clearance</span></a>
+          {% endif %}
+          {% if documents.chief_letter %}
+            <a href="{{ documents.chief_letter.url }}" target="_blank" class="employee-document-card"><i class="bi bi-file-earmark-text"></i><span>Chief's Letter</span></a>
+          {% endif %}
+          {% if documents.scanned_id %}
+            <a href="{{ documents.scanned_id.url }}" target="_blank" class="employee-document-card"><i class="bi bi-person-vcard"></i><span>Scanned ID</span></a>
+          {% endif %}
+          {% if documents.college_certificate %}
+            <a href="{{ documents.college_certificate.url }}" target="_blank" class="employee-document-card"><i class="bi bi-mortarboard"></i><span>College Certificate</span></a>
+          {% endif %}
+          {% if documents.referee_letter %}
+            <a href="{{ documents.referee_letter.url }}" target="_blank" class="employee-document-card"><i class="bi bi-file-earmark-person"></i><span>Referee Letter</span></a>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="employee-empty-state">
+          <i class="bi bi-folder2-open"></i>
+          <p>No documents have been uploaded for this employee.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="employee-danger-zone">
+    <div>
+      <strong>Approval status</strong>
+      <p>Approve and assign this employee to a workstation, or mark the profile as declined.</p>
+    </div>
+    <div class="employee-danger-actions">
+      <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#approveEmployeeModal{{ employee.id }}">
+        <i class="bi bi-check2-circle"></i> Approve Employee
+      </button>
+      <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#disapproveEmployeeModal{{ employee.id }}">
+        <i class="bi bi-x-circle"></i> Disapprove
+      </button>
+    </div>
+  </section>
 </div>
-</div>
-<div class="row mt-5"></div>
-<hr>
-<div class="row">
-  <div class="col">
-    <h3>Employee Documents</h3>
-  </div>
-  <div class="col">
-    <a class="btn btn-info" data-bs-toggle="modal" data-bs-target="#uploadDocumentsModal{{employee.id}}">
-      Upload Documents
-    </a>
-  </div>
-</div>
+
+{% include "employees/edit_employee.html" %}
+{% include "bank/new_bank_details.html" %}
+{% if banking_details_found %}
+  {% include "bank/edit_bank_details.html" %}
+{% endif %}
+{% include "family/new_family_member.html" %}
+{% include "education/new_education.html" %}
 {% include "employees/upload_documents.html" %}
-<hr>
-<div class="row mb-3">
-  <div class="table-responsive small">
-    <table class="table table-sm">
-      <thead>
-        <tr>
-          <th scope="col">Date Created</th>
-          <th scope="col">Document Name</th>
-          <th scope="col"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if documents.kcpe_certificate %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>KCPE Certificate</td>
-          <td>
-            <a href="{{ documents.kcpe_certificate.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-
-        {% if documents.kcse_certificate %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>KCSE Certificate</td>
-          <td>
-            <a href="{{ documents.kcse_certificate.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-
-        {% if documents.kra_certificate %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>KRA PIN Certificate</td>
-          <td>
-            <a href="{{ documents.kra_certificate.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-
-        {% if documents.police_clearance %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>Police Clearance</td>
-          <td>
-            <a href="{{ documents.police_clearance.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-
-        {% if documents.chief_letter %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>Chief's Letter</td>
-          <td>
-            <a href="{{ documents.chief_letter.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-
-        {% if documents.scanned_id %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>Scanned ID</td>
-          <td>
-            <a href="{{ documents.scanned_id.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-
-        {% if documents.college_certificate %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>College/University Certificate</td>
-          <td>
-            <a href="{{ documents.college_certificate.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-
-        {% if documents.referee_letter %}
-        <tr>
-          <td>{{documents.created}}</td>
-          <td>Referee Letter</td>
-          <td>
-            <a href="{{ documents.referee_letter.url }}" target="_blank" class="btn btn-info btn-sm">View Document</a>
-          </td>
-        </tr>
-        {% endif %}
-        
-      </tbody>
-    </table>
-  </div>
-</div>
-<div class="d-flex mt-5 mb-5 border">
-  <div class="flex-fill p-4">
-    <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveEmployeeModal{{employee.id}}">Approve Employee</a>
-  </div>
-  
-  <div class="flex-fill p-4">
-    <a href="" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#disapproveEmployeeModal{{employee.id}}">Disapprove Employee</a>
-  </div>
- {% include "employees/approve_employee.html" %}
- {% include "employees/decline_employee.html" %}
-</div>
+{% include "employees/approve_employee.html" %}
+{% include "employees/decline_employee.html" %}
 {% endblock content %}

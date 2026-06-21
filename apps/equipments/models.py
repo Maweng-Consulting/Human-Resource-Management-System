@@ -45,7 +45,7 @@ class Equipment(AbstractBaseModel):
 
 
 class EquipmentIssue(AbstractBaseModel):
-    employee = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True)
+    employee = models.ForeignKey("employees.Employee", on_delete=models.SET_NULL, null=True)
     date_issued = models.DateField(null=True)
     issued_by = models.ForeignKey(
         "users.User",

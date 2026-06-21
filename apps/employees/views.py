@@ -5,12 +5,14 @@ from datetime import datetime
 import calendar
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from apps.payments.models import EmployeeSalary
 from apps.employees.models import (
     NextOfKin,
     EducationInformation,
     Employee,
     EmployeeDocument,
+    DeploymentAssignment,
 )
 from apps.payments.models import EmployeeSalary, BankInformation
 from apps.core.models import Workstation, PaymentConfig, JobRole
@@ -23,6 +25,20 @@ current_year = str(date_today.year)
 # Employee Management
 
 SHIFT_CHOICES = ["Day Shift", "Night Shift", "24 Hours Shift"]
+
+def record_deployment_assignment(employee, workstation, work_shift, assigned_by=None):
+    DeploymentAssignment.objects.filter(
+        employee=employee, status="Active", released_at__isnull=True
+    ).update(status="Reassigned", released_at=timezone.now())
+
+    DeploymentAssignment.objects.create(
+        employee=employee,
+        client=workstation.client,
+        workstation=workstation,
+        work_shift=work_shift,
+        assigned_by=assigned_by if assigned_by and assigned_by.is_authenticated else None,
+        assigned_at=timezone.now(),
+    )
 
 
 @login_required(login_url="/users/login/")
@@ -232,6 +248,10 @@ def employee_details(request, employee_id=None):
     banking_details = BankInformation.objects.filter(employee=employee).first()
 
     workstations = Workstation.objects.all()
+    payment_configs = PaymentConfig.objects.select_related("job_group").all()
+    deployment_history = employee.deployment_history.select_related(
+        "client", "workstation", "assigned_by"
+    ).all()[:5]
 
     if banking_details:
         bank_details_found = True
@@ -244,6 +264,8 @@ def employee_details(request, employee_id=None):
         "banking_details_found": bank_details_found,
         "banking_info": banking_details,
         "workstations": workstations,
+        "payment_configs": payment_configs,
+        "deployment_history": deployment_history,
         "work_shifts": SHIFT_CHOICES,
     }
 
@@ -264,6 +286,7 @@ def approve_employee(request):
         employee.status = "Approved"
         employee.workshift = work_shift
         employee.save()
+        record_deployment_assignment(employee, workstation, work_shift, request.user)
 
         return redirect(f"/employees/{employee_id}")
     return render(request, "employees/approve_employee.html")
@@ -395,15 +418,16 @@ def delete_education_record(request):
 
 ## Employees Assignments
 def employee_assignments(request):
-    employees = Employee.objects.exclude(
+    assignable_employees = Employee.objects.exclude(
         status__in=["Pending Approval", "Declined"]
     ).order_by("-created")
+    employees = assignable_employees
 
     if request.method == "POST":
         search_text = request.POST.get("search_text")
-        employees = Employee.objects.filter(
+        employees = assignable_employees.filter(
             Q(first_name__icontains=search_text)
-            | Q(first_name__icontains=search_text)
+            | Q(last_name__icontains=search_text)
             | Q(phone_number__icontains=search_text)
             | Q(id_number__icontains=search_text)
         ).order_by("-created")
@@ -412,13 +436,21 @@ def employee_assignments(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    context = {"page_obj": page_obj, "work_shifts": SHIFT_CHOICES}
+    workstations = Workstation.objects.select_related("client").all()
+    context = {
+        "page_obj": page_obj,
+        "work_shifts": SHIFT_CHOICES,
+        "workstations": workstations,
+        "assigned_count": assignable_employees.filter(workstation__isnull=False).count(),
+        "unassigned_count": assignable_employees.filter(workstation__isnull=True).count(),
+        "workstation_count": workstations.count(),
+    }
     return render(request, "assignments/assignments.html", context)
 
 
 def reassign_employee(request):
     if request.method == "POST":
-        employee_id = request.POST.get("employee")
+        employee_id = request.POST.get("employee_id")
         workstation_id = request.POST.get("workstation")
         work_shift = request.POST.get("work_shift")
 
@@ -429,6 +461,7 @@ def reassign_employee(request):
         employee.client = workstation.client
         employee.workshift = work_shift
         employee.save()
+        record_deployment_assignment(employee, workstation, work_shift, request.user)
 
-        return redirect("assignemnts")
+        return redirect("assignments")
     return render(request, "assignments/reassign.html")
